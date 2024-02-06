@@ -1,0 +1,121 @@
+version: "3.9"
+services:
+  zookeeper:
+    restart: always
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 22181:2181
+    networks:
+      surfer:
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    restart: always
+    depends_on:
+      - zookeeper
+    ports:
+      - 29092:29092
+    hostname: kafka
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 2
+    networks:
+      surfer:
+
+  kafka2:
+    image: confluentinc/cp-kafka:latest
+    restart: always
+    depends_on:
+      - zookeeper
+    ports:
+      - 29093:29092
+    hostname: kafka2
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka2:29093
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 2
+    networks:
+      surfer:
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui
+    container_name: kafka-ui
+    ports:
+      - 8090:8080
+    restart: always
+    environment:
+      - KAFKA_CLUSTERS_0_NAME=local
+      - KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS=kafka:29092,kafka2:29093
+      - KAFKA_CLUSTERS_0_ZOOKEEPER=zookeeper:2181
+    links:
+      - kafka
+      - kafka2
+      - zookeeper
+    networks:
+      surfer:
+
+  candle-producer:
+    image: pron9/candle-kafka-producer:1.0.3
+    container_name: producer
+    ports:
+      - 8080:7777
+    links:
+      - kafka-ui
+    environment:
+#    следует учитывать, что в приложени время по UTC
+      - hours-to-subtract=21
+    networks:
+      surfer:
+
+  #  ema-kafka-consumer:
+  #    restart: always
+  #    image: pron9/ema-kafka-consumer:1.0.0
+  #    environment:
+  #      - broker.base.url=http://producer
+  #      - broker.port=7777
+  #    ports:
+  #      - 8081:7778
+  #    links:
+  #      - kafka-ui
+  #      - candle-producer
+  #    depends_on:
+  #      - candle-producer
+
+  prometheus:
+    image: prom/prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      surfer:
+
+  grafana:
+    image: grafana/grafana
+    restart: always
+    container_name: grafana
+    ports:
+      - 8070:3000
+    networks:
+      surfer:
+#  consumer:
+#    image: pron9/kafka-consumer:1.0.1
+#    ports:
+#      - 8081:8080
+#    links:
+#      - kafka-ui
+
+networks:
+  surfer:
+    driver:
+      bridge

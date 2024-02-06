@@ -1,0 +1,8 @@
+bootstrap-servers: kafka:29092
+tinkoff.api.token.prod: t.VoR44F3NE1bRqHjlfAxHbLPYT1gwqeAc71AM1pt_JRombOZiLbW3MxqG-bjirrqjJquJAil3r81XfxWDlJM9JQ
+hours-to-subtract: 0
+server.port: 7777
+spring.task.scheduling.pool.size: 5
+spring:
+  application:
+    name: surfer
