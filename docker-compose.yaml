@@ -73,7 +73,7 @@ services:
       - kafka-ui
     environment:
 #    следует учитывать, что в приложени время по UTC
-      - hours-to-subtract=21
+      - hours-to-subtract=45
     networks:
       surfer:
 

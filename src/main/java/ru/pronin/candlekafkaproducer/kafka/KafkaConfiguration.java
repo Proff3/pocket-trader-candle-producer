@@ -29,6 +29,8 @@ public class KafkaConfiguration {
 
     @Bean
     public ProducerFactory<String, Candle> candleProducerFactory() {
+        JsonSerializer<Candle> serializer = new JsonSerializer<>();
+        serializer.setAddTypeInfo(false);
         Map<String, Object> props = new HashMap<>();
         props.put(
                 ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
@@ -38,7 +40,7 @@ public class KafkaConfiguration {
                 StringSerializer.class);
         props.put(
                 ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-                CandleKafkaSerializer.class);
+                serializer);
         props.put(
                 ProducerConfig.CLIENT_ID_CONFIG,
                 "baeldung");
