@@ -19,6 +19,7 @@ import ru.tinkoff.piapi.core.MarketDataService;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 
 import static java.time.ZoneOffset.UTC;
 import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE;
@@ -56,16 +57,17 @@ public class CandleSchedulerProducer {
             MarketDataService marketDataService = broker.getMarketDataService();
             Instant from = Instant.now().minus(hoursToSubtract, ChronoUnit.HOURS).truncatedTo(ChronoUnit.SECONDS).minus(candleTime.getMinutes(), ChronoUnit.MINUTES);
             Instant to = Instant.now().minus(hoursToSubtract, ChronoUnit.HOURS).truncatedTo(ChronoUnit.SECONDS);
-            HistoricCandle historicCandle = marketDataService
-                    .getCandlesSync(share.getFigi(), from, to, candleTime.getInterval())
-                    .get(LocalDateTime.ofInstant(to, UTC).minusHours(hoursToSubtract).getMinute() % candleTime.getMinutes() == 0 ? 0 : 1);
-            processCandle(historicCandle);
-            log.info("Send candle {}", historicCandle);
+            marketDataService
+                    .getCandles(share.getFigi(), from, to, candleTime.getInterval().getTinkoffInterval())
+                    .thenAccept(candles -> processCandles(to, candles));
         }
     }
 
-    private void processCandle(ru.tinkoff.piapi.contract.v1.HistoricCandle historicCandle) {
-        Candle candle = new Candle(historicCandle, ru.pronin.candlekafkaproducer.enums.CandleInterval.FIVE_MINUTES, hoursToSubtract);
+    private void processCandles(Instant to, List<HistoricCandle> historicCandles) {
+        int idx = LocalDateTime.ofInstant(to, UTC).minusHours(hoursToSubtract).getMinute() % candleTime.getMinutes() == 0 ? 0 : 1;
+        HistoricCandle historicCandle = historicCandles.get(idx);
+        Candle candle = new Candle(historicCandle, candleTime.getInterval(), hoursToSubtract);
         candleKafkaTemplate.send(share.getFigi(), candle.getCurrentTime().toString(), candle);
+        log.info("Send candle {}", historicCandle);
     }
 }

@@ -1,0 +1,100 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xmlns:ext="http://www.liquibase.org/xml/ns/dbchangelog-ext"
+        xmlns:pro="http://www.liquibase.org/xml/ns/pro"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd
+        http://www.liquibase.org/xml/ns/dbchangelog-ext http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-ext.xsd
+        http://www.liquibase.org/xml/ns/pro http://www.liquibase.org/xml/ns/pro/liquibase-pro-latest.xsd">
+
+    <property name="generate_uuid" value="(uuid())" dbms="mysql"/>
+
+    <changeSet id="001_create_roles" author="Vladislav">
+        <createTable tableName="roles">
+            <column name="id" type="int">
+                <constraints primaryKey="true" />
+            </column>
+            <column name="name" type="varchar(100)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+        </createTable>
+        <insert tableName="roles">
+            <column name="id" value="1" />
+            <column name="name" value="USER" />
+        </insert>
+        <insert tableName="roles">
+            <column name="id" value="2" />
+            <column name="name" value="ADMIN" />
+        </insert>
+    </changeSet>
+
+    <changeSet id="001_create_users" author="Vladislav">
+        <createTable tableName="clients">
+            <column name="id" type="varchar(36)" defaultValueComputed="${generate_uuid}">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="nickname" type="varchar(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="password" type="varchar(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="varchar(200)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="role_id" type="int">
+                <constraints nullable="false" foreignKeyName="fk_user_role" references="roles(id)" />
+            </column>
+            <column name="client_id" type="varchar(36)" defaultValueComputed="${generate_uuid}">
+                <constraints nullable="false" unique="true"/>
+            </column>
+        </createTable>
+        <insert tableName="clients">
+            <column name="nickname" value="Nick"/>
+            <!--      qwerty password      -->
+            <column name="password" value="2da81d3a815ff7a9ef9b1ce4156b6e1b2a767cc29d8eea236150133818dd25c4d73a5698bb"/>
+            <column name="email" value="nick@gmail.com"/>
+            <column name="role_id" value="1"/>
+        </insert>
+        <insert tableName="clients">
+            <column name="nickname" value="Dave"/>
+            <!--      qwerty password      -->
+            <column name="password" value="2da81d3a815ff7a9ef9b1ce4156b6e1b2a767cc29d8eea236150133818dd25c4d73a5698bb"/>
+            <column name="email" value="dave@gmail.com"/>
+            <column name="role_id" value="2"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="001_create_google_users" author="Vladislav">
+        <createTable tableName="google_users">
+            <column name="id" type="varchar(36)" defaultValueComputed="${generate_uuid}">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="nickname" type="varchar(200)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="varchar(200)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="client_id" type="varchar(36)" defaultValueComputed="${generate_uuid}">
+                <constraints nullable="false" unique="true"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="001_create_client_strategies" author="Vladislav">
+        <createTable tableName="client_strategies">
+            <column name="id" type="varchar(36)" defaultValueComputed="${generate_uuid}">
+                <constraints primaryKey="true"/>
+            </column>
+            <column name="strategies" type="json">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="varchar(36)">
+                <constraints nullable="false" foreignKeyName="fk_user_id" references="client_strategies(id)"/>
+            </column>
+        </createTable>
+    </changeSet>
+</databaseChangeLog>

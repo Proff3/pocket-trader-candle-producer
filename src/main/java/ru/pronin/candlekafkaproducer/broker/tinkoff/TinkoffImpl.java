@@ -17,6 +17,7 @@ import ru.tinkoff.piapi.core.stream.MarketDataStreamService;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -46,6 +47,7 @@ public class TinkoffImpl implements BrokerAPI {
         marketDataService = investApi.getMarketDataService();
         sandboxService = investApi.getSandboxService();
         marketDataStreamService = investApi.getMarketDataStreamService();
+        clearAccounts();
         accountId = sandboxService.openAccountSync();
         System.out.println("Account id " + accountId);
         sandboxService.payInSync(accountId, fromDoubleToMoneyValue(99_000, "USD"));
@@ -66,7 +68,7 @@ public class TinkoffImpl implements BrokerAPI {
         return candles.stream()
                 .skip(candles.size() - requiredNumberOfCandles)
                 .map(ru.pronin.candlekafkaproducer.dto.Candle::new)
-                .map(candle -> candle.withCloseTime(candle.getOpenTime().plusMinutes(ru.pronin.candlekafkaproducer.enums.CandleInterval.getMinutesRange(interval))))
+                .map(candle -> candle.withCloseTime(candle.getOpenTime().plus(ru.pronin.candlekafkaproducer.enums.CandleInterval.getMinutesRange(interval), ChronoUnit.MINUTES)))
                 .collect(Collectors.toList());
     }
 
@@ -264,5 +266,9 @@ public class TinkoffImpl implements BrokerAPI {
                 return CANDLE_INTERVAL_UNSPECIFIED;
             }
         }
+    }
+
+    private void clearAccounts() {
+        sandboxService.getAccountsSync().forEach(account -> sandboxService.closeAccountSync(account.getId()));
     }
 }

@@ -6,6 +6,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import ru.pronin.candlekafkaproducer.broker.stream.CandleProducerFactory;
 import ru.pronin.candlekafkaproducer.broker.stream.CandleProducerFactoryType;
+import ru.pronin.candlekafkaproducer.dto.CandleDto;
 import ru.pronin.candlekafkaproducer.dto.request.CandleTime;
 import ru.pronin.candlekafkaproducer.enums.Share;
 import ru.pronin.candlekafkaproducer.broker.tinkoff.TinkoffImpl;
@@ -26,49 +27,48 @@ import static ru.tinkoff.piapi.contract.v1.SubscriptionInterval.SUBSCRIPTION_INT
 public class TinkoffStreamFactory implements CandleProducerFactory {
 
     private final MarketDataStreamService marketDataStreamService;
-    private final KafkaTemplate<String, Candle> candleKafkaTemplate;
+    private final KafkaTemplate<String, CandleDto> candleKafkaTemplate;
     private final Map<String, String> streams = new ConcurrentHashMap<>();
 
     @Autowired
     public TinkoffStreamFactory(TinkoffImpl broker,
-                                KafkaTemplate<String, Candle> candleKafkaTemplate) {
+                                KafkaTemplate<String, CandleDto> candleKafkaTemplate) {
         this.marketDataStreamService = broker.getMarketDataStreamService();
         this.candleKafkaTemplate = candleKafkaTemplate;
     }
 
     @Override
-    public String createProducer(Share share, CandleTime candleTime) {
-        String key = getKey(share, candleTime);
-        if (streams.containsKey(key)) {
-            return streams.get(key);
-        }
-        String id = UUID.randomUUID().toString();
-        String topic = share.getFigi();
-        log.info("Create");
-        marketDataStreamService
-                .newStream(
-                        id,
-                        data -> {
-                            try {
-                                if (MarketDataResponse.PayloadCase.CANDLE.equals(data.getPayloadCase())) {
-                                    Candle candle = new Candle(data.getCandle(), CandleInterval.FIVE_MINUTES);
-                                    log.info("Candle: {}", candle);
-                                    candleKafkaTemplate.send(topic, candle.getCurrentTime().toString(), candle);
-                                }
-                            } catch (Exception ex) {
-                                log.debug(data.toString());
-                                log.debug(ex.getMessage());
-                            }
-                        },
-                        ex -> log.error(ex.getMessage()))
-                .subscribeCandles(List.of(share.getFigi()), SUBSCRIPTION_INTERVAL_FIVE_MINUTES);
-        streams.put(key, id);
-        return id;
+    public void createProducer(Share share, CandleTime candleTime) {
+//        String key = getKey(share, candleTime);
+//        if (streams.containsKey(key)) {
+//            return;
+//        }
+//        String id = UUID.randomUUID().toString();
+//        String topic = share.getFigi();
+//        log.info("Create");
+//        marketDataStreamService
+//                .newStream(
+//                        id,
+//                        data -> {
+//                            try {
+//                                if (MarketDataResponse.PayloadCase.CANDLE.equals(data.getPayloadCase())) {
+//                                    Candle candle = new Candle(data.getCandle(), CandleInterval.FIVE_MINUTES);
+//                                    log.info("Candle: {}", candle);
+//                                    candleKafkaTemplate.send(topic, candle.getCurrentTime().toString(), candle);
+//                                }
+//                            } catch (Exception ex) {
+//                                log.debug(data.toString());
+//                                log.debug(ex.getMessage());
+//                            }
+//                        },
+//                        ex -> log.error(ex.getMessage()))
+//                .subscribeCandles(List.of(share.getFigi()), SUBSCRIPTION_INTERVAL_FIVE_MINUTES);
+//        streams.put(key, id);
     }
 
     @Override
-    public Map<String, String> getStreamIds() {
-        return streams;
+    public Map<Share, List<CandleTime>> getStreamIds() {
+        return null;
     }
 
     @Override

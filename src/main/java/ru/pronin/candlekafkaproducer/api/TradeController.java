@@ -25,7 +25,7 @@ public class TradeController {
 
     @PostMapping("/candles")
     public ResponseEntity<List<Candle>> getCandles(@RequestBody CandleRequest request) {
-        List<Candle> result = provider.getCandles(request.getShare().getFigi(), request.getCount(), request.getCandleTime().getInterval());
+        List<Candle> result = provider.getCandles(request.getShare().getFigi(), request.getCount(), request.getCandleTime().getInterval().getTinkoffInterval());
         log.info("Запрос: {}, Ответ: {}", request, result);
         return ResponseEntity.ok(result);
     }

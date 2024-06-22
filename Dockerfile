@@ -1,4 +1,4 @@
-FROM bitnami/java:17.0.6-10-debian-11-r4
+FROM alpine/java:21-jre
 
 WORKDIR /app
 

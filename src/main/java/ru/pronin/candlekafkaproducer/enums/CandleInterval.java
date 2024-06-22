@@ -36,11 +36,11 @@ public enum CandleInterval {
     MONTHLY_VISION("1mo", List.of());
 
     private static final Map<ru.tinkoff.piapi.contract.v1.CandleInterval, CandleInterval> TINKOFF_INTERVALS =
-            Arrays.stream(values()).filter(interval -> interval.getInterval() != null).collect(Collectors.toMap(CandleInterval::getInterval, Function.identity()));
+            Arrays.stream(values()).filter(interval -> interval.getTinkoffInterval() != null).collect(Collectors.toMap(CandleInterval::getTinkoffInterval, Function.identity()));
 
     private final String value;
     private final List<Integer> minutesRange;
-    private ru.tinkoff.piapi.contract.v1.CandleInterval interval;
+    private ru.tinkoff.piapi.contract.v1.CandleInterval tinkoffInterval;
     private int minutes;
 
     public String toString() {

@@ -1,8 +1,29 @@
-bootstrap-servers: kafka:29092
 tinkoff.api.token.prod: t.VoR44F3NE1bRqHjlfAxHbLPYT1gwqeAc71AM1pt_JRombOZiLbW3MxqG-bjirrqjJquJAil3r81XfxWDlJM9JQ
-hours-to-subtract: 0
+bybit.api.secret: 7a9wCOJBFY9jwXNccazZH754oTekRqzaRQjL
+hours-to-subtract: 53
 server.port: 7777
-spring.task.scheduling.pool.size: 5
 spring:
+  task:
+    scheduling:
+      pool:
+        size: 5
+  datasource:
+    url: jdbc:mysql://localhost:3306/surfer
+    username: root
+    password: WOwnib846
   application:
     name: surfer
+  liquibase:
+    change-log: liquibase/databaseChangeLog.xml
+  jpa:
+    show-sql: true
+  kafka:
+    bootstrap-servers: localhost:9091
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+
+topic-name:
+  candlesFromTinkoff

@@ -19,9 +19,10 @@ public class InitTinkoffController {
     private final CandleStreamService streamService;
 
     @GetMapping("/create")
-    public ResponseEntity<String> createStream(@NotBlank @RequestParam String figi,
-                                               @NotBlank @RequestParam CandleTime candleTime) {
-        return ResponseEntity.ok(streamService.createProducer(Share.getByFigi(figi), candleTime));
+    public ResponseEntity<Void> createStream(@NotBlank @RequestParam String figi,
+                                             @NotBlank @RequestParam CandleTime candleTime) {
+        streamService.createProducer(Share.getByFigi(figi), candleTime);
+        return ResponseEntity.ok().build();
     }
 
     @GetMapping("/delete")

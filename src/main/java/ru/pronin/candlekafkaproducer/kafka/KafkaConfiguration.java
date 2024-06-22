@@ -1,57 +1,29 @@
 package ru.pronin.candlekafkaproducer.kafka;
 
-import org.apache.kafka.clients.admin.AdminClientConfig;
-import org.apache.kafka.clients.admin.NewTopic;
-import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.serialization.StringDeserializer;
-import org.apache.kafka.common.serialization.StringSerializer;
-import org.springframework.beans.factory.annotation.Value;
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.autoconfigure.kafka.KafkaProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.kafka.core.DefaultKafkaProducerFactory;
-import org.springframework.kafka.core.KafkaAdmin;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
-import org.springframework.kafka.support.serializer.JsonSerializer;
-import ru.pronin.candlekafkaproducer.dto.Candle;
-import ru.pronin.candlekafkaproducer.serializer.CandleKafkaSerializer;
+import ru.pronin.candlekafkaproducer.dto.CandleDto;
 
-import java.util.HashMap;
-import java.util.Map;
-
-@Configuration
 @EnableKafka
+@Configuration
+@RequiredArgsConstructor
 public class KafkaConfiguration {
 
-    @Value("${bootstrap-servers}")
-    private String bootstrapAddress;
+    private final KafkaProperties kafkaProperties;
 
     @Bean
-    public ProducerFactory<String, Candle> candleProducerFactory() {
-        JsonSerializer<Candle> serializer = new JsonSerializer<>();
-        serializer.setAddTypeInfo(false);
-        Map<String, Object> props = new HashMap<>();
-        props.put(
-                ProducerConfig.BOOTSTRAP_SERVERS_CONFIG,
-                bootstrapAddress);
-        props.put(
-                ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG,
-                StringSerializer.class);
-        props.put(
-                ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG,
-                serializer);
-        props.put(
-                ProducerConfig.CLIENT_ID_CONFIG,
-                "baeldung");
-        props.put(
-                ProducerConfig.RETRIES_CONFIG,
-                3);
-        return new DefaultKafkaProducerFactory<>(props);
+    public ProducerFactory<String, CandleDto> candleProducerFactory() {
+        return new DefaultKafkaProducerFactory<>(kafkaProperties.buildProducerProperties());
     }
 
     @Bean
-    public KafkaTemplate<String, Candle> candleKafkaTemplate() {
+    public KafkaTemplate<String, CandleDto> candleKafkaTemplate() {
         return new KafkaTemplate<>(candleProducerFactory());
     }
 }

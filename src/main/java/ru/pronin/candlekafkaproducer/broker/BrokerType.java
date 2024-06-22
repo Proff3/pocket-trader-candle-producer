@@ -4,6 +4,7 @@ public enum BrokerType {
 
     BINANCE("binance"),
     TINKOFF("tinkoff"),
+    BYBIT("bybit"),
     ;
 
     private final String typeName;
